@@ -26,6 +26,9 @@ type Client struct {
 	Version string
 	// ViewLogAction is the action logged when a Viewer Token is used, default is 'audit.log.view'
 	ViewLogAction string
+	// HTTPClient is the http.Client to use to communicate with the Retraced API.
+	// http.DefaultClient will be used if unset.
+	HTTPClient *http.Client
 }
 
 // NewClient creates a new retraced api client that can be used to send events
@@ -77,7 +80,11 @@ func (c *Client) ReportEvent(event *Event) (*NewEventRecord, error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Token token=%s", c.token))
 
-	resp, err := http.DefaultClient.Do(req)
+	httpClient := c.HTTPClient
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
